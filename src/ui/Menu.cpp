@@ -189,9 +189,12 @@ void Menu::buscarClientePorId()
     limparTela();
     cabecalho("Buscar Cliente por ID");
     int id;
+
+    //Pede o ID para o usuario
     std::cout << "Digite o ID do cliente: ";
     std::cin >> id;
     
+    //Verifica se o ID é um número válido
     if(std::cin.fail()){
         verificaBuffer();
         std::cout << "ID Invalido." << std::endl;
@@ -209,17 +212,119 @@ void Menu::buscarClientePorId()
 
 void Menu::buscarClientePorNome()
 {
-    std::cout << "Buscar Cliente por Nome selecionado!" << std::endl;
+    limparTela();
+    cabecalho("Buscar Cliente por Nome");
+    
+    std::string nomeBusca;
+
+    // Limpeza de buffer (Necessário antes de usar getline se veio de um menu numérico)
+    std::cin.ignore(); 
+
+    std::cout << "Digite o Nome (ou parte dele): ";
+    std::getline(std::cin, nomeBusca);
+    Cliente clienteEncontrado = repositorio->buscarPorNome(nomeBusca);
+    if (clienteEncontrado.getNome() == "") { 
+        std::cout << "\nCliente nao encontrado!" << std::endl;
+    } else {
+        clienteEncontrado.exibir();
+    }
+    pausar();
 }
 
 void Menu::atualizarCliente()
 {
-    std::cout << "Atualizar Cliente selecionado!" << std::endl;
+    limparTela();
+    cabecalho("ATUALIZAR CLIENTE");
+
+    int id;
+    std::cout << "Digite o ID do cliente para editar: ";
+    std::cin >> id;
+    verificaBuffer(); // Limpa o buffer do ID
+
+    // 1. Busca o cliente original
+    Cliente cliente = repositorio->buscarPorId(id);
+
+    if (cliente.getId() == 0) {
+        std::cout << "\n[!] Cliente nao encontrado." << std::endl;
+        pausar();
+        return;
+    }
+
+    std::string input;
+    
+    std::cout << "\n--- Editando Cliente (Pressione ENTER para manter o valor atual) ---\n" << std::endl;
+
+    // --- NOME ---
+    std::cout << "Nome atual [" << cliente.getNome() << "]: ";
+    std::getline(std::cin, input);
+    if (!input.empty()) { // Se digitou algo, atualiza. Se vazio, mantem o antigo.
+        cliente.setNome(input);
+    }
+
+    // --- CPF/CNPJ ---
+    std::cout << "CPF/CNPJ atual [" << cliente.getCpfCnpj() << "]: ";
+    std::getline(std::cin, input);
+    if (!input.empty()) cliente.setCpfCnpj(input);
+
+    // --- EMAIL ---
+    std::cout << "Email atual [" << cliente.getEmail() << "]: ";
+    std::getline(std::cin, input);
+    if (!input.empty()) cliente.setEmail(input);
+
+    // --- TELEFONE ---
+    std::cout << "Telefone atual [" << cliente.getTelefone() << "]: ";
+    std::getline(std::cin, input);
+    if (!input.empty()) cliente.setTelefone(input);
+
+    // --- ENDEREÇO ---
+    std::cout << "Endereco atual [" << cliente.getEndereco() << "]: ";
+    std::getline(std::cin, input);
+    if (!input.empty()) cliente.setEndereco(input);
+
+    // 3. Salva as alterações no repositório
+    repositorio->atualizar(cliente);
+
+    std::cout << "\n>>> Cliente atualizado com sucesso! <<<" << std::endl;
+    pausar();
+    
 }
 
 void Menu::deletarCliente()
 {
-    std::cout << "Deletar Cliente selecionado!" << std::endl;
+    limparTela();
+    cabecalho("DELETAR CLIENTE");
+
+    int id;
+    std::cout << "Digite o ID do cliente que deseja remover: ";
+    std::cin >> id;
+
+    if (std::cin.fail()) {
+        verificaBuffer();
+        std::cout << "ID Invalido." << std::endl;
+        pausar();
+        return;
+    }
+
+    // 1. Verifica se existe antes de tentar apagar
+    Cliente clienteAlvo = repositorio->buscarPorId(id);
+
+    if (clienteAlvo.getId() == 0) {
+        std::cout << "\n[!] Cliente com ID " << id << " nao encontrado." << std::endl;
+    } else {
+        // 2. Mostra quem é para evitar acidentes
+        std::cout << "\nVoce vai deletar o cliente: " << clienteAlvo.getNome() << std::endl;
+        std::cout << "Tem certeza? (1-Sim / 0-Nao): ";
+        int confirmar;
+        std::cin >> confirmar;
+
+        if (confirmar == 1) {
+            repositorio->deletar(id);
+            std::cout << "\n>>> Cliente removido com sucesso! <<<" << std::endl;
+        } else {
+            std::cout << "\nOperacao cancelada." << std::endl;
+        }
+    }
+    pausar();
 }
 
 void Menu::cadastrarServico()

@@ -20,7 +20,7 @@ class InMemoryClienteRepository : public ClienteRepository {
         void atualizar(const Cliente& cliente) override {
             for (auto& c : clientes) {
                 if (c.getId() == cliente.getId()) {
-                    c = cliente; // Atualiza o cliente existente
+                    c = cliente; 
                     return;
                 }
             }
@@ -33,20 +33,20 @@ class InMemoryClienteRepository : public ClienteRepository {
         Cliente buscarPorId(int id) override {
             for (auto& c : clientes) {
                 if (c.getId() == id) {
-                    return c; // Retorna um ponteiro para o cliente encontrado
+                    return c; 
                 }
             }
-            return Cliente(); // Retorna nullptr se não encontrar
+            return Cliente(); 
         }
-        std::vector<Cliente> buscarPorNome(const std::string& nome) const override {
-            std::vector<Cliente> encontrados;
+        Cliente buscarPorNome(const std::string& nome) const override {
             for (const auto& c : clientes) {
                 if (c.getNome() == nome) {
-                    encontrados.push_back(c); // Adiciona o cliente encontrado à lista
+                    return c;
                 }
             }
-            return encontrados; // Retorna a lista de clientes encontrados
+            return Cliente(); // Retorna um cliente vazio se não encontrar
         }
+
 
 
 };
