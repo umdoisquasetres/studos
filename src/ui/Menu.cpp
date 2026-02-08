@@ -6,9 +6,11 @@
 
 #include <iostream>
 #include <string>
+#include <limits>
 #include "Menu.h"
 
-Menu::Menu() {}
+Menu::Menu(ClienteRepository* repo) : repositorio(repo), proximoId(1) {
+}
 Menu::~Menu() {}
 
 void Menu::limparTela()
@@ -27,8 +29,9 @@ void Menu::verificaBuffer()
 
 void Menu::pausar()
 {
-    std::cout << "Pressione Enter para continuar...";
-    std::cin.ignore(1000, '\n');
+std::cout << "\nPressione Enter para continuar...";
+    // Limpa qualquer lixo antes de esperar o enter
+    std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
     std::cin.get();
 }
 
@@ -77,13 +80,15 @@ void Menu::menuPrincipal()
 
 void Menu::menuClientes()
 {
+    int opcao;
+    do{
     limparTela();
     cabecalho("Menu de Clientes");
     std::cout << "1. Cadastrar Cliente" << std::endl;
     std::cout << "2. Listar Clientes" << std::endl;
     std::cout << "3. Voltar" << std::endl;
     std::cout << "Escolha uma opção: ";
-    int opcao;
+    
     std::cin >> opcao;
     // VERIFICAÇÃO DE ERRO (Se digitar letra)
     verificaBuffer();
@@ -103,7 +108,7 @@ void Menu::menuClientes()
     default:
         std::cout << "Opção inválida!" << std::endl;
         pausar();
-    }
+    }}while (opcao != 3);
 }
 
 void Menu::menuServicos()
@@ -149,19 +154,17 @@ void Menu::cadastrarCliente()
     std::cin.ignore(); // Limpa o buffer antes de ler strings
     std::cout << "Nome: ";
     std::getline(std::cin, nome);
-    std::cin.ignore();
     std::cout << "CPF/CNPJ: ";
     std::getline(std::cin, cpfCnpj);
     std::cout << "Email: ";
     std::getline(std::cin, email);
     std::cout << "Telefone: ";
     std::getline(std::cin, telefone);
-    std::cin.ignore();
     std::cout << "Endereço: ";
     std::getline(std::cin, endereco);
 
     Cliente novoCliente(proximoId++, nome, cpfCnpj, email, telefone, endereco);
-    listaDeClientes.push_back(novoCliente);
+    repositorio->adicionar(novoCliente);
     std::cout << "Cliente cadastrado com sucesso!" << std::endl;
 }
 
@@ -169,19 +172,39 @@ void Menu::listarClientes()
 {
     limparTela();
     cabecalho("Lista de Clientes");
-    if(listaDeClientes.empty()){
+    std::vector<Cliente> listaRecebida = repositorio->listar();
+    if(listaRecebida.empty()){
         std::cout << "Nenhum cliente cadastrado!" << std::endl;
     }else{
-        for(const auto& cliente : listaDeClientes){
+        for(const auto& cliente : listaRecebida){
             cliente.exibir();
             std::cout << "------------------------" << std::endl;
         }
     }
+    pausar();
 }
 
 void Menu::buscarClientePorId()
 {
-    std::cout << "Buscar Cliente por ID selecionado!" << std::endl;
+    limparTela();
+    cabecalho("Buscar Cliente por ID");
+    int id;
+    std::cout << "Digite o ID do cliente: ";
+    std::cin >> id;
+    
+    if(std::cin.fail()){
+        verificaBuffer();
+        std::cout << "ID Invalido." << std::endl;
+        pausar();
+        return;
+    }
+    Cliente clienteEncontrado = repositorio->buscarPorId(id);
+    if (clienteEncontrado.getId() == 0) {
+        std::cout << "\nCliente nao encontrado!" << std::endl;
+    } else {
+        clienteEncontrado.exibir();
+    }
+    pausar();
 }
 
 void Menu::buscarClientePorNome()

@@ -4,18 +4,18 @@
 #include <string>
 #include <vector>
 #include "../domain/Cliente.h"
+#include "../Repository/ClienteRepository.h"
 
 class Menu
 {
 private:
+
+    ClienteRepository* repositorio;
     // Funções auxiliares
     void limparTela();
     void pausar();
     void cabecalho(const std::string &titulo);
     void verificaBuffer();
-
-    //DB
-    std::vector<Cliente> listaDeClientes;
 
     //Gerar ID automático
     int proximoId = 1;
@@ -42,7 +42,7 @@ private:
     void deletarServico();
 
 public:
-    Menu();
+    Menu(ClienteRepository* repo);
     ~Menu();
     void iniciar();
 };
